@@ -13,8 +13,8 @@ void FillMatrixes(int* a, int* b)
 {
 	for (int i = 0; i < SIZE; i++)
 	{
-		a[i] = -i;
-		b[i] = i * i;
+		a[i] = -2*i;
+		b[i] = i*i;
 	}
 }
 
