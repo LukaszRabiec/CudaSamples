@@ -152,7 +152,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Lab3_ProductTwoVectors.cu">
+    <CudaCompile Include="Lab4_ProductManyVectors.cu">
       <FileType>CppCode</FileType>
     </CudaCompile>
     <ClCompile Include="stdafx.cpp">

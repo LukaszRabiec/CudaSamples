@@ -34,7 +34,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Lab3_ProductTwoVectors.cu">
+    <CudaCompile Include="Lab4_ProductManyVectors.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>

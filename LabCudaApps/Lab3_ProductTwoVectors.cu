@@ -4,6 +4,7 @@
 #include "handlers.h"
 #include "stdafx.h"
 #include <stdlib.h>
+#include <windows.h>
 
 #ifndef __CUDACC__
 	#define __CUDACC__
@@ -30,19 +31,6 @@ void FillMatrixes(int* firstVector, int* secondVector)
 	}
 }
 
-//TODO: Przypomniec na pocz¹tku zajêæ
-__global__ void ProductVectorsAtomic(const int* firstVector, const int* secondVector, int* result)
-{
-	register int sum = 0;
-
-	for (int i = 0; i < SIZE; i++)
-	{
-		sum += firstVector[i] * secondVector[i];
-	}
-
-	*result = sum;
-}
-
 __global__ void ProductVectorsWithSumOnSingleThreadV1(const int* firstVector, const int* secondVector, int* result)
 {
 	__shared__ int cache[SIZE];
@@ -55,7 +43,7 @@ __global__ void ProductVectorsWithSumOnSingleThreadV1(const int* firstVector, co
 	// Sum on single thread (poor version)
 	if (threadIdx.x == 0)
 	{
-		result[blockIdx.x] = 0;
+		result[blockIdx.x] = 0;		// Take this to registry (see next method)
 
 		for (int i = 0; i < blockDim.x; i++)
 		{
@@ -88,12 +76,60 @@ __global__ void ProductVectorsWithSumOnSingleThreadV2(const int* firstVector, co
 	}
 }
 
+__global__ void ProductVectorsWithSumOnMultithreadsV1(const int* firstVector, const int* secondVector, int* result)
+{
+	__shared__ int product[SIZE];
+	register int localThreadId = threadIdx.x;
+
+	product[localThreadId] = firstVector[localThreadId] * secondVector[localThreadId];
+
+	// Sum with neighbor thread
+	for (int i = 1; i < blockDim.x; i = i << 1)		// for (int i = 1; i < blockDim.x; i *= 2) // slower
+	{
+		__syncthreads();
+
+		if (localThreadId % (i << 1) == 0)	// if (localThreadId % (2 * i) == 0) // slower
+		{
+			product[localThreadId] += product[localThreadId + i];
+		}
+	}
+
+	if (localThreadId == 0)
+	{
+		result[blockIdx.x] = product[0];
+	}
+}
+
+__global__ void ProductVectorsWithSumOnMultithreadsV2(const int* firstVector, const int* secondVector, int* result)
+{
+	__shared__ int product[SIZE];
+	register int localThreadId = threadIdx.x;
+
+	product[localThreadId] = firstVector[localThreadId] * secondVector[localThreadId];
+
+	// Sum with neighbor thread (half - fastest)
+	for (int i = blockDim.x / 2; i > 0; i /= 2)
+	{
+		__syncthreads();
+
+		if (localThreadId < blockDim.x / 2)
+		{
+			product[localThreadId] += product[localThreadId + 1];
+		}
+	}
+
+	if (localThreadId == 0)
+	{
+		result[blockIdx.x] = product[0];
+	}
+}
+
 int main()
 {
 	// Initialize
 	CudaInit();
 
-	int *firstVector, *secondVector, *multithreadsResult;
+	int *firstVector, *secondVector;
 	int *devFirstVector, *devSecondVector, *devResult;
 	int result;
 
@@ -116,9 +152,19 @@ int main()
 	printf("Product vectors with sum on single thread (v1): %d\n", result);
 
 	// Sum on single thread V2
-	ProductVectorsWithSumOnSingleThreadV2 << <1, SIZE >> >(devFirstVector, devSecondVector, devResult);
+	ProductVectorsWithSumOnSingleThreadV2<<<1, SIZE>>>(devFirstVector, devSecondVector, devResult);
 	HANDLE_ERROR(cudaMemcpy(&result, devResult, sizeof(int), cudaMemcpyDeviceToHost));
 	printf("Product vectors with sum on single thread (v2): %d\n", result);
+
+	// Sum on multithreads V1
+	ProductVectorsWithSumOnMultithreadsV1<<<1, SIZE>>>(devFirstVector, devSecondVector, devResult);
+	HANDLE_ERROR(cudaMemcpy(&result, devResult, sizeof(int), cudaMemcpyDeviceToHost));
+	printf("Product vectors with sum on multithreads (v1): %d\n", result);
+
+	// Sum on multithreads V2
+	ProductVectorsWithSumOnMultithreadsV2<<<1, SIZE>>>(devFirstVector, devSecondVector, devResult);
+	HANDLE_ERROR(cudaMemcpy(&result, devResult, sizeof(int), cudaMemcpyDeviceToHost));
+	printf("Product vectors with sum on multithreads (v2): %d\n", result);
 
 	getchar();
 
