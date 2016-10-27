@@ -1,4 +1,4 @@
-// Lab3_ProductTwoVectors.cu : Defines the entry point for the console application.
+// Lab4_ProductManyVectors.cu : Defines the entry point for the console application.
 // Author: £ukasz Pawe³ Rabiec (259049)
 
 #include "handlers.h"
@@ -13,7 +13,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#define SIZE 1024
+#define SIZE 16
 #define SIZE_OF_INT SIZE*SIZE*sizeof(int)
 
 void CudaInit()
