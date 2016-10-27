@@ -13,7 +13,7 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#define SIZE 16
+#define SIZE 1024
 #define SIZE_OF_INT SIZE*SIZE*sizeof(int)
 
 void CudaInit()
