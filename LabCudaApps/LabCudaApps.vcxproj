@@ -152,9 +152,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Lab5_MultiplyTwoMatrixes.cu">
-      <FileType>CppCode</FileType>
-    </CudaCompile>
+    <CudaCompile Include="Lab6_MultiplyTwoMatrixesOnBlocks.cu" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

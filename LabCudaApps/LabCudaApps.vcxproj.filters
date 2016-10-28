@@ -34,7 +34,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="Lab5_MultiplyTwoMatrixes.cu">
+    <CudaCompile Include="Lab6_MultiplyTwoMatrixesOnBlocks.cu">
       <Filter>Source Files</Filter>
     </CudaCompile>
   </ItemGroup>
